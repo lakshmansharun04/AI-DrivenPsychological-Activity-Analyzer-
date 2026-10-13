@@ -1,0 +1,295 @@
+<!doctype html>
+<html class="no-js" lang="zxx">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+   <title>AI-Driven Psychological Activity Analyzer </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- <link rel="manifest" href="site.webmanifest"> -->
+    <link rel="shortcut icon" type="image/x-icon" href="../static/img/favicon.png">
+    <!-- Place favicon.ico in the root directory -->
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="../static/css/magnific-popup.css">
+    <link rel="stylesheet" href="../static/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../static/css/themify-icons.css">
+    <link rel="stylesheet" href="../static/css/nice-select.css">
+    <link rel="stylesheet" href="../static/css/flaticon.css">
+    <link rel="stylesheet" href="../static/css/gijgo.css">
+    <link rel="stylesheet" href="../static/css/animate.css">
+    <link rel="stylesheet" href="../static/css/slicknav.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="../static/css/responsive.css"> -->
+</head>
+
+<body>
+    <!--[if lte IE 9]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+        <![endif]-->
+
+
+    <!-- header-start -->
+    <header>
+        <div class="header-area ">
+            <div class="header-top_area">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-6 col-md-6 ">
+                            <div class="social_media_links">
+                                <a href="#">
+                                    <i class="fa fa-linkedin"></i>
+                                </a>
+                                <a href="#">
+                                    <i class="fa fa-facebook"></i>
+                                </a>
+                                <a href="#">
+                                    <i class="fa fa-google-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-xl-6 col-md-6">
+                            <div class="short_contact_list">
+                                <ul>
+                                    <li><a href="#"> <i class="fa fa-envelope"></i> info@docmed.com</a></li>
+                                    <li><a href="#"> <i class="fa fa-phone"></i> 9012345678</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sticky-header" class="main-header-area">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-xl-3 col-lg-2">
+                            <div class="logo">
+                                <a href="index.html">
+                                    <img src="../static/img/logo.png" alt="">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-xl-9 col-lg-7">
+                            <div class="main-menu  d-none d-lg-block">
+                                <nav>
+                                    <ul id="navigation">
+                                        <li><a class="active" href="{{url_for('home')}}">home</a></li>
+                                        <li><a class="active" href="{{url_for('signup')}}">Signup</a></li>
+                                        <li><a class="active" href="{{url_for('signin')}}">Signin</a></li>
+                                     
+                                      
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mobile_menu d-block d-lg-none"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- header-end -->
+
+    <!-- bradcam_area_start  -->
+    <div class="bradcam_area breadcam_bg_2 bradcam_overlay">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="bradcam_text">
+                        <h3>Health Care</h3>
+                        <p><a href="index.html">Home /</a> Signup</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="contact-section">
+            <div class="container">
+           
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="contact-title">Signup</h2>
+                        {% if message %}
+                        <p style="color: white;">{{ message }}</p>
+                    {% endif %}
+                    </div>
+                    <div class="col-lg-12">
+                        <form  class="form-contact contact_form"  action="/register" method="post">
+                               
+                           
+                            <div class="row">
+
+        <!-- Username -->
+        <div class="col-12">
+            <div class="form-group">
+                <input class="form-control" name="username" id="username" type="text"
+                    placeholder="Enter User Name">
+            </div>
+        </div>
+
+        <!-- Email -->
+        <div class="col-sm-6">
+            <div class="form-group">
+                <input class="form-control" name="email" id="email" type="email"
+                    placeholder="Enter Email Id">
+            </div>
+        </div>
+
+        <!-- Age -->
+        <div class="col-sm-6">
+            <div class="form-group">
+                <input class="form-control" name="age" id="age" type="number"
+                    placeholder="Enter Age" min="1" max="120" required>
+            </div>
+        </div>
+          <!-- Mobile Number (Optional) -->
+        <div class="col-sm-6">
+            <div class="form-group">
+                <input 
+                    class="form-control" 
+                    name="mno" 
+                    id="mno" 
+                    type="tel"
+                    placeholder="Enter Mobile Number (Optional)"
+                    pattern="[0-9]{10}">
+            </div>
+        </div>
+
+        <!-- Gender -->
+        <div class="col-sm-6">
+            <div class="form-group">
+                <select class="form-control" name="gender" id="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Password -->
+       <div class="col-sm-6">
+    <div class="form-group position-relative">
+        <input class="form-control" name="password" id="password" type="password"
+            placeholder="Enter Password" onkeyup="validatePassword()">
+
+        <!-- Eye Icon -->
+        <i class="bi bi-eye-slash position-absolute"
+           id="togglePassword"
+           style="top: 38%; right: 15px; cursor: pointer;"></i>
+
+        <small id="passwordError" class="text-danger"></small>
+    </div>
+</div>
+
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="button button-contactForm boxed-btn">
+            Account Create
+        </button>
+    </div>
+                        </form>
+                    </div>
+                
+                </div>
+            </div>
+        </section>
+    <!-- ================ contact section end ================= -->
+    
+
+<!-- form itself end -->
+    
+        <!-- JS here -->
+        <script src="../static/js/vendor/modernizr-3.5.0.min.js"></script>
+        <script src="../static/js/vendor/jquery-1.12.4.min.js"></script>
+        <script src="../static/js/popper.min.js"></script>
+        <script src="../static/js/bootstrap.min.js"></script>
+        <script src="../static/js/owl.carousel.min.js"></script>
+        <script src="../static/js/isotope.pkgd.min.js"></script>
+        <script src="../static/js/ajax-form.js"></script>
+        <script src="../static/js/waypoints.min.js"></script>
+        <script src="../static/js/jquery.counterup.min.js"></script>
+        <script src="../static/js/imagesloaded.pkgd.min.js"></script>
+        <script src="../static/js/scrollIt.js"></script>
+        <script src="../static/js/jquery.scrollUp.min.js"></script>
+        <script src="../static/js/wow.min.js"></script>
+        <script src="../static/js/nice-select.min.js"></script>
+        <script src="../static/js/jquery.slicknav.min.js"></script>
+        <script src="../static/js/jquery.magnific-popup.min.js"></script>
+        <script src="../static/js/plugins.js"></script>
+        <script src="../static/js/gijgo.min.js"></script>
+    <script>
+    const togglePassword = document.querySelector("#togglePassword");
+    const password = document.querySelector("#password");
+
+    togglePassword.addEventListener("click", function () {
+        const type = password.getAttribute("type") === "password" ? "text" : "password";
+        password.setAttribute("type", type);
+
+       
+        this.classList.toggle("bi-eye");
+        this.classList.toggle("bi-eye-slash");
+    });
+</script>
+       
+        <script src="../static/js/contact.js"></script>
+        <script src="../static/js/jquery.ajaxchimp.min.js"></script>
+        <script src="../static/js/jquery.form.js"></script>
+        <script src="../static/js/jquery.validate.min.js"></script>
+        <script src="../static/js/mail-script.js"></script>
+    
+        <script src="../static/js/main.js"></script>
+        <script>
+            $('#datepicker').datepicker({
+                iconsLibrary: 'fontawesome',
+                icons: {
+                 rightIcon: '<span class="fa fa-caret-down"></span>'
+             }
+            });
+            $('#datepicker2').datepicker({
+                iconsLibrary: 'fontawesome',
+                icons: {
+                 rightIcon: '<span class="fa fa-caret-down"></span>'
+             }
+    
+            });
+
+           
+function validatePassword() {
+    const password = document.getElementById("password").value;
+    const error = document.getElementById("passwordError");
+
+   
+    if (password.length < 8) {
+        error.innerHTML = "Password must be at least 8 characters long.";
+        return false;
+    }
+
+   
+    const strongPasswordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/;
+
+    if (!strongPasswordRegex.test(password)) {
+        error.innerHTML =
+            "Password must include uppercase, lowercase, number, and special character.";
+        return false;
+    }
+
+ 
+    error.innerHTML = "";
+    return true;
+}
+
+        </script>
+    </body>
+    
+    </html>

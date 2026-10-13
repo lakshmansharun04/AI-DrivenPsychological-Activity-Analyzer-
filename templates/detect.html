@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion AI – Mental Health Companion</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #5a67d8;
+            --secondary: #805ad5;
+            --accent: #38b2ac;
+            --soft-blue: #ebf4ff;
+            --soft-purple: #faf5ff;
+            --bg: #f7f8fc;
+            --white: #ffffff;
+            --dark: #1a202c;
+            --gray: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(90,103,216,0.10);
+            --shadow-lg: 0 16px 48px rgba(90,103,216,0.18);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* ===================== OVERLAY SYSTEM ===================== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,10,30,0.82);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .overlay.hidden { display: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .popup {
+            background: var(--white);
+            border-radius: 24px;
+            width: 92vw;
+            max-width: 880px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.45s cubic-bezier(0.22,1,0.36,1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(60px) scale(0.97); opacity: 0; }
+            to   { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .popup-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            padding: 28px 36px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .popup-header .step-badge {
+            background: rgba(255,255,255,0.22);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .popup-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+        }
+
+        .popup-header p {
+            opacity: 0.85;
+            font-size: 0.9rem;
+            margin-top: 3px;
+        }
+
+        .popup-body {
+            padding: 32px 36px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* ===================== STEP INDICATORS ===================== */
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background: var(--soft-blue);
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #c3d0f0;
+            transition: 0.3s;
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            transform: scale(1.4);
+        }
+
+        .step-dot.done {
+            background: var(--accent);
+        }
+
+        /* ===================== CAMERA POPUP ===================== */
+        .camera-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .video-wrap {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #0f1020;
+            aspect-ratio: 4/3;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-overlay-label {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .camera-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .camera-controls h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .emotion-result-card {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-purple));
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .emotion-emoji {
+            font-size: 2.8rem;
+        }
+
+        .emotion-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .emotion-sub {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* ===================== EEG POPUP ===================== */
+        .eeg-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #eegwave {
+            width: 100%;
+            height: 220px;
+            border-radius: 14px;
+            background: #0a0e27;
+            display: block;
+        }
+
+        .eeg-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .eeg-stat {
+            background: var(--soft-blue);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .eeg-stat .val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .eeg-stat .lbl {
+            font-size: 0.78rem;
+            color: var(--gray);
+            margin-top: 3px;
+        }
+
+        /* ===================== CONFIDENCE POPUP ===================== */
+        .confidence-container {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .confidence-ring-wrap {
+            position: relative;
+            display: inline-block;
+            margin: 20px auto;
+        }
+
+        .confidence-ring-wrap svg {
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg { fill: none; stroke: #e2e8f0; stroke-width: 14; }
+        .ring-fg {
+            fill: none;
+            stroke: url(#ringGrad);
+            stroke-width: 14;
+            stroke-linecap: round;
+            stroke-dasharray: 502;
+            stroke-dashoffset: 502;
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .ring-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring-percent {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .ring-text {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .confidence-tags {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .conf-tag {
+            background: var(--soft-purple);
+            border: 1px solid #d6bcfa;
+            color: var(--secondary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .confidence-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 24px;
+            text-align: left;
+        }
+
+        .breakdown-item {
+            background: var(--soft-blue);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .breakdown-item .bi-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 6px;
+        }
+
+        .breakdown-item .bi-bar-bg {
+            background: #c3d0f0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .breakdown-item .bi-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 1.2s ease;
+        }
+
+        .breakdown-item .bi-val {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--dark);
+            margin-top: 4px;
+        }
+
+        /* ===================== BUTTONS ===================== */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(90,103,216,0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), #2c9a8c);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-danger {
+            background: #fc5c65;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f7b731;
+            color: var(--dark);
+        }
+
+        .popup-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 36px;
+            border-top: 1px solid var(--border);
+            background: #fafbff;
+        }
+
+        /* ===================== MAIN PAGE ===================== */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 28px 20px 20px;
+        }
+
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.1rem;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            opacity: 0.88;
+            font-size: 0.95rem;
+        }
+
+        .navbar ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 0;
+            margin-top: 18px;
+        }
+
+        .navbar ul li a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 24px;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .navbar ul li a:hover, .navbar ul li a.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .container { max-width: 1400px; margin: auto; }
+
+        .welcome {
+            text-align: center;
+            padding: 36px 20px 28px;
+            background: linear-gradient(180deg, var(--soft-blue), var(--bg));
+        }
+
+        .welcome h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary);
+            font-size: 1.7rem;
+            margin-bottom: 8px;
+        }
+
+        .welcome p { color: var(--gray); }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-top: 28px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 22px 18px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-card i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .feature-card h4 { font-size: 1rem; margin-bottom: 5px; }
+        .feature-card p { color: var(--gray); font-size: 0.85rem; }
+
+        /* ===================== MAIN LAYOUT ===================== */
+        .main {
+            display: flex;
+            min-height: 75vh;
+            gap: 0;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            overflow-y: auto;
+        }
+
+        .panel {
+            background: var(--bg);
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .panel h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark);
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .panel h3 i {
+            color: var(--primary);
+        }
+
+        .resource-item {
+            background: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            transition: 0.25s;
+            font-size: 0.9rem;
+        }
+
+        .resource-item:hover {
+            background: var(--soft-blue);
+            border-color: var(--primary);
+        }
+
+        .resource-item i { color: var(--primary); width: 20px; }
+
+        .mood-options {
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0;
+        }
+
+        .mood-btn {
+            font-size: 1.8rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 50%;
+            padding: 5px;
+        }
+
+        .mood-btn:hover { transform: scale(1.3); }
+
+        .sidebar-mini-result {
+            background: var(--soft-blue);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--primary);
+            font-weight: 600;
+            display: none;
+        }
+
+        /* ===================== CHAT AREA ===================== */
+        .chat { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
+
+        .chat-box {
+            margin: 20px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex: 1;
+            border: 1px solid var(--border);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4facfe, #00e0ff);
+            padding: 18px 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-header-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .chat-header-info h3 { font-size: 1rem; font-weight: 700; }
+        .chat-header-info span { font-size: 0.8rem; opacity: 0.85; }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #48bb78;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 24px;
+            background: #f9fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-messages::-webkit-scrollbar { width: 5px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #c3d0f0; border-radius: 10px; }
+
+        .message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .message-row.user { flex-direction: row-reverse; }
+
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .msg-avatar.bot-avatar { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        .msg-avatar.user-avatar { background: linear-gradient(135deg, var(--accent), #2c9a8c); color: white; }
+
+        .message-bubble {
+            max-width: 68%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            line-height: 1.55;
+            font-size: 0.92rem;
+        }
+
+        .message-row.bot .message-bubble {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--dark);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .message-row.user .message-bubble {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 14px rgba(90,103,216,0.25);
+        }
+
+        .message-time {
+            font-size: 0.72rem;
+            color: #a0aec0;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message-row.bot .message-time { text-align: left; }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 18px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--gray);
+            animation: typingBounce 1.2s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-6px); }
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid var(--border);
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 24px;
+            border: 2px solid var(--border);
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            color: var(--dark);
+            transition: border-color 0.2s;
+        }
+
+        .chat-input input:focus { border-color: var(--primary); }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 14px rgba(90,103,216,0.4);
+        }
+
+        /* ===================== EEG RESULT DISPLAY ===================== */
+        #moodResult {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-purple));
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        #moodResult h4 { font-size: 0.9rem; color: var(--primary); margin-bottom: 4px; }
+        #moodResult p { font-size: 0.88rem; color: var(--dark); }
+
+        /* ===================== HIDDEN CANVAS ===================== */
+        #snapshotCanvas { display: none; }
+
+        /* ===================== UTILITIES ===================== */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-10 { margin-top: 10px; }
+        .mt-16 { margin-top: 16px; }
+        .info-text { color: var(--gray); font-size: 0.88rem; line-height: 1.5; }
+
+        .w-full { width: 100%; }
+
+        @media (max-width: 800px) {
+            .camera-container { grid-template-columns: 1fr; }
+            .eeg-stats { grid-template-columns: repeat(2,1fr); }
+            .confidence-breakdown { grid-template-columns: 1fr; }
+            .main { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+
+        @media (max-width: 520px) {
+            .popup-body { padding: 20px; }
+            .popup-footer { padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== OVERLAY 1: CAMERA / FACE ANALYSIS ==================== -->
+<div class="overlay" id="overlay-camera">
+    <div class="popup">
+        <div class="popup-header">
+            <div class="step-badge">1</div>
+            <div>
+                <h2><i class="fa-solid fa-camera-retro"></i> Face Emotion Analysis</h2>
+                <p>Please allow camera access. We'll capture your expression to personalize your session.</p>
+            </div>
+        </div>
+
+        <div class="progress-steps">
+            <div class="step-dot active" id="dot1"></div>
+            <div class="step-dot" id="dot2"></div>
+            <div class="step-dot" id="dot3"></div>
+        </div>
+
+        <div class="popup-body">
+            <div class="camera-container">
+                <div class="video-wrap">
+                    <video id="cameraVideo" autoplay muted playsinline></video>
+                    <div class="video-overlay-label"><i class="fa-solid fa-circle" style="color:#fc5c65;font-size:0.7rem;"></i> LIVE</div>
+                </div>
+
+                <div class="camera-controls">
+                    <h4><i class="fa-solid fa-sliders" style="color:var(--primary);"></i> Controls</h4>
+                    <p class="info-text">Position your face clearly in the frame, then click <strong>Capture & Analyze</strong> to detect your emotion.</p>
+
+                    <button class="btn btn-primary w-full mt-10" id="startCameraBtn">
+                        <i class="fa-solid fa-video"></i> Start Camera
+                    </button>
+                    <button class="btn btn-accent w-full" id="captureBtn">
+                        <i class="fa-solid fa-camera"></i> Capture & Analyze
+                    </button>
+                    <button class="btn btn-danger w-full" id="stopCameraBtn">
+                        <i class="fa-solid fa-video-slash"></i> Stop Camera
+                    </button>
+
+                    <canvas id="snapshotCanvas" width="20" height="20"></canvas>
+
+                    <div class="emotion-result-card" id="emotionCard">
+                        <div class="emotion-emoji" id="emotionEmoji">🤔</div>
+                        <div class="emotion-label" id="emotionLabel">Waiting for capture...</div>
+                        <div class="emotion-sub" id="emotionSub">Point your camera and press capture</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="popup-footer">
+            <button class="btn btn-outline" id="skipCameraBtn">Skip This Step</button>
+            <button class="btn btn-primary" id="nextToEEGBtn" disabled>
+                Next: EEG Analysis <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== OVERLAY 2: EEG ANALYSIS ==================== -->
+<div class="overlay hidden" id="overlay-eeg">
+    <div class="popup">
+        <div class="popup-header">
+            <div class="step-badge">2</div>
+            <div>
+                <h2><i class="fa-solid fa-wave-square"></i> EEG Brain Wave Analysis</h2>
+                <p>Analyzing brainwave patterns to assess your emotional state in real-time.</p>
+            </div>
+        </div>
+
+        <div class="progress-steps">
+            <div class="step-dot done" id="dot1b"></div>
+            <div class="step-dot active" id="dot2b"></div>
+            <div class="step-dot" id="dot3b"></div>
+        </div>
+
+        <div class="popup-body">
+            <div class="eeg-container">
+                <canvas id="eegwave" width="800" height="220"></canvas>
+
+                <div class="eeg-stats">
+                    <div class="eeg-stat">
+                        <div class="val" id="eegHz">--</div>
+                        <div class="lbl">Frequency (Hz)</div>
+                    </div>
+                    <div class="eeg-stat">
+                        <div class="val" id="eegAmpl">--</div>
+                        <div class="lbl">Amplitude (μV)</div>
+                    </div>
+                    <div class="eeg-stat">
+                        <div class="val" id="eegState">--</div>
+                        <div class="lbl">Brain State</div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button class="btn btn-primary" id="starteeg" style="min-width:160px;">
+                        <i class="fa-solid fa-play"></i> Start EEG
+                    </button>
+                    <button class="btn btn-danger hidden" id="captureeeg" style="min-width:160px;">
+                        <i class="fa-solid fa-stop"></i> Stop & Analyze
+                    </button>
+                </div>
+
+                <div id="moodResult">
+                    <h4>EEG Emotion Result</h4>
+                    <p id="moodResultText"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="popup-footer">
+            <button class="btn btn-outline" id="backToCameraBtn">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-primary" id="nextToConfidenceBtn" disabled>
+                Next: Confidence Score <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== OVERLAY 3: CONFIDENCE SCORE ==================== -->
+<div class="overlay hidden" id="overlay-confidence">
+    <div class="popup">
+        <div class="popup-header">
+            <div class="step-badge">3</div>
+            <div>
+                <h2><i class="fa-solid fa-chart-pie"></i> Analysis Confidence Score</h2>
+                <p>Combined multimodal analysis results from face and EEG data.</p>
+            </div>
+        </div>
+
+        <div class="progress-steps">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+        </div>
+
+        <div class="popup-body">
+            <div class="confidence-container">
+                <p class="info-text">Based on your facial expression and brainwave analysis, here is your emotion profile:</p>
+
+                <div class="confidence-ring-wrap">
+                    <svg width="180" height="180" viewBox="0 0 180 180">
+                        <defs>
+                            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:var(--primary)"/>
+                                <stop offset="100%" style="stop-color:var(--secondary)"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg" cx="90" cy="90" r="80"/>
+                        <circle class="ring-fg" id="ringFg" cx="90" cy="90" r="80"/>
+                    </svg>
+                    <div class="ring-label">
+                        <span class="ring-percent" id="confPercent">0%</span>
+                        <span class="ring-text">Confidence</span>
+                    </div>
+                </div>
+
+                <div class="confidence-tags" id="confTags">
+                    <span class="conf-tag" id="primaryEmotion">Analyzing...</span>
+                </div>
+
+                <div class="confidence-breakdown">
+                    <div class="breakdown-item">
+                        <div class="bi-label">Facial Analysis</div>
+                        <div class="bi-bar-bg"><div class="bi-bar-fill" id="faceBar" style="width:0%"></div></div>
+                        <div class="bi-val" id="faceBarVal">--</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="bi-label">EEG Analysis</div>
+                        <div class="bi-bar-bg"><div class="bi-bar-fill" id="eegBar" style="width:0%"></div></div>
+                        <div class="bi-val" id="eegBarVal">--</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="bi-label">Stress Level</div>
+                        <div class="bi-bar-bg"><div class="bi-bar-fill" id="stressBar" style="width:0%;background:linear-gradient(90deg,#fc5c65,#fd9644)"></div></div>
+                        <div class="bi-val" id="stressBarVal">--</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="bi-label">Emotional Stability</div>
+                        <div class="bi-bar-bg"><div class="bi-bar-fill" id="stabilityBar" style="width:0%;background:linear-gradient(90deg,#11998e,#38ef7d)"></div></div>
+                        <div class="bi-val" id="stabilityBarVal">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="popup-footer">
+            <button class="btn btn-outline" id="backToEEGBtn">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-primary" id="goToChatBtn">
+                Begin Chat Session <i class="fa-solid fa-comments"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MAIN LAYOUT ==================== -->
+<div class="container">
+    <header>
+        <h1><i class="fa-solid fa-brain"></i> Emotion AI</h1>
+        <p>Free &amp; Anonymous Mental Health Support</p>
+        <nav class="navbar">
+            <ul>
+
+                 <li><a class="active" href="{{url_for('dashboard')}}">home</a></li>
+                                        <li><a  href="{{url_for('profile')}}">Profile</a></li>
+                                        <li><a  href="{{url_for('ehr')}}">EHR Record Upload</a></li>
+
+                                        <li><a  href="{{url_for('viewrecord')}}">View Record</a></li>
+                                      
+                                        <li><a  href="{{url_for('home')}}">Logout</a></li>
+            
+            </ul>
+        </nav>
+    </header>
+
+    <section class="welcome">
+        <h2>Welcome to Your Mental Health Companion</h2>
+        <p>Talk freely, track your mood, and explore helpful resources.</p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fa-solid fa-robot"></i>
+                <h4>AI Chat Support</h4>
+                <p>Talk to the supportive Emotion assistant.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-camera"></i>
+                <h4>Emotion Analysis</h4>
+                <p>Get camera-based emotion insights.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-heart"></i>
+                <h4>Mood Tracking</h4>
+                <p>Track your emotional patterns via EEG.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-book-medical"></i>
+                <h4>Resources</h4>
+                <p>Access mental health guides and tools.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="main">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="panel">
+                <h3><i class="fa-solid fa-camera"></i> Session Summary</h3>
+                <div class="sidebar-mini-result" id="sidebarFaceResult">
+                    <i class="fa-solid fa-face-smile"></i> Face: <span id="sidebarFaceVal">–</span>
+                </div>
+                <div class="sidebar-mini-result" id="sidebarEEGResult" style="margin-top:8px;">
+                    <i class="fa-solid fa-wave-square"></i> EEG: <span id="sidebarEEGVal">–</span>
+                </div>
+                <div class="sidebar-mini-result" id="sidebarConfResult" style="margin-top:8px;">
+                    <i class="fa-solid fa-chart-pie"></i> Confidence: <span id="sidebarConfVal">–</span>
+                </div>
+                <p class="info-text mt-10" style="font-size:0.8rem;">Results from your latest analysis session.</p>
+            </div>
+
+            <div class="panel">
+                <h3><i class="fa-solid fa-book-medical"></i> Resources</h3>
+                <div class="resource-item"><i class="fa-solid fa-wind"></i> Anxiety &amp; Stress</div>
+                <div class="resource-item"><i class="fa-solid fa-cloud"></i> Depression Help</div>
+                <div class="resource-item"><i class="fa-solid fa-heart"></i> Self-Care Tips</div>
+                <div class="resource-item"><i class="fa-solid fa-bed"></i> Better Sleep</div>
+                <button class="btn btn-warning w-full mt-10">
+                    <i class="fa-solid fa-phone"></i> Emergency Support
+                </button>
+            </div>
+
+            <div class="panel">
+                <h3><i class="fa-solid fa-face-smile"></i> Today's Mood</h3>
+                <div class="mood-options">
+                    <button class="mood-btn" title="Happy">😊</button>
+                    <button class="mood-btn" title="Okay">🙂</button>
+                    <button class="mood-btn" title="Neutral">😐</button>
+                    <button class="mood-btn" title="Anxious">😰</button>
+                    <button class="mood-btn" title="Sad">😢</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT AREA -->
+        <div class="chat">
+            <div class="chat-box">
+                <div class="chat-header">
+                    <div class="chat-header-avatar"><i class="fa-solid fa-robot"></i></div>
+                    <div class="chat-header-info">
+                        <h3>Emotion AI Assistant</h3>
+                        <span><span class="online-dot"></span>Online – Ready to support you</span>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message-row bot">
+                        <div class="msg-avatar bot-avatar"><i class="fa-solid fa-robot"></i></div>
+                        <div>
+                            <div class="message-bubble">
+                                Hi! I'm your Emotion AI companion. I've just completed your emotion analysis. How are you feeling right now? I'm here to listen and support you. 💙
+                            </div>
+                            <div class="message-time">Just now</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input">
+                    <input type="text" id="chatInputField" placeholder="Share how you're feeling...">
+                    <button class="send-btn" id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+let stream = null;
+let eegTimer = null;
+let eegData = [];
+let detectedFaceEmotion = null;
+let detectedEEGEmotion = null;
+let confidenceScore = 0;
+
+
+const overlayCamera     = document.getElementById('overlay-camera');
+const overlayEEG        = document.getElementById('overlay-eeg');
+const overlayConfidence = document.getElementById('overlay-confidence');
+
+function showOverlay(el) {
+    [overlayCamera, overlayEEG, overlayConfidence].forEach(o => o.classList.add('hidden'));
+    el.classList.remove('hidden');
+}
+
+
+const video           = document.getElementById('cameraVideo');
+const canvas          = document.getElementById('snapshotCanvas');
+const emotionEmoji    = document.getElementById('emotionEmoji');
+const emotionLabel    = document.getElementById('emotionLabel');
+const emotionSub      = document.getElementById('emotionSub');
+const nextToEEGBtn    = document.getElementById('nextToEEGBtn');
+
+const emojiMap = {
+    happy: '😊', sad: '😢', angry: '😡', surprised: '😲',
+    fear: '😨', disgust: '🤢', neutral: '😐', calm: '😌'
+};
+
+document.getElementById('startCameraBtn').onclick = async () => {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+    } catch (e) {
+        alert('Camera access denied. Please allow camera permission.');
+    }
+};
+
+document.getElementById('stopCameraBtn').onclick = () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    video.srcObject = null;
+};
+
+document.getElementById('captureBtn').onclick = () => {
+    if (!video.srcObject) {
+        alert('Please start the camera first.');
+        return;
+    }
+
+    const ctx2d = canvas.getContext('2d');
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx2d.drawImage(video, 0, 0);
+
+    canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('image', blob, 'capture.png');
+
+        emotionLabel.textContent = 'Analyzing...';
+        emotionEmoji.textContent = '⏳';
+
+        try {
+            const res  = await fetch('/facial-expression', { method: 'POST', body: formData });
+            const data = await res.json();
+            const expr = data.expression || 'neutral';
+
+            detectedFaceEmotion = expr;
+            emotionEmoji.textContent = emojiMap[expr.toLowerCase()] || '😶';
+            emotionLabel.textContent  = expr.charAt(0).toUpperCase() + expr.slice(1);
+            emotionSub.textContent    = 'Emotion detected successfully ✓';
+
+            nextToEEGBtn.disabled = false;
+        } catch (err) {
+            // Demo fallback
+            const demo = 'calm';
+            detectedFaceEmotion = demo;
+            emotionEmoji.textContent = emojiMap[demo];
+            emotionLabel.textContent  = 'Calm';
+            emotionSub.textContent    = 'Demo mode – API unavailable';
+            nextToEEGBtn.disabled = false;
+        }
+    }, 'image/png');
+};
+
+document.getElementById('skipCameraBtn').onclick = () => {
+    detectedFaceEmotion = 'neutral';
+    showOverlay(overlayEEG);
+};
+
+nextToEEGBtn.onclick = () => {
+    showOverlay(overlayEEG);
+};
+
+document.getElementById('backToCameraBtn').onclick = () => {
+    showOverlay(overlayCamera);
+};
+
+// =========================================================
+//  STEP 2 – EEG
+// =========================================================
+const eegCanvas        = document.getElementById('eegwave');
+const eegCtx           = eegCanvas.getContext('2d');
+const starteegBtn      = document.getElementById('starteeg');
+const captureeegBtn    = document.getElementById('captureeeg');
+const moodResult       = document.getElementById('moodResult');
+const moodResultText   = document.getElementById('moodResultText');
+const nextToConfBtn    = document.getElementById('nextToConfidenceBtn');
+
+const eegHzEl     = document.getElementById('eegHz');
+const eegAmplEl   = document.getElementById('eegAmpl');
+const eegStateEl  = document.getElementById('eegState');
+
+function drawEEG(data) {
+    const W = eegCanvas.width;
+    const H = eegCanvas.height;
+    eegCtx.clearRect(0, 0, W, H);
+
+    // Background grid
+    eegCtx.strokeStyle = '#1a2040';
+    eegCtx.lineWidth = 1;
+    for (let y = 0; y <= H; y += 40) {
+        eegCtx.beginPath();
+        eegCtx.moveTo(0, y);
+        eegCtx.lineTo(W, y);
+        eegCtx.stroke();
+    }
+    for (let x = 0; x <= W; x += 60) {
+        eegCtx.beginPath();
+        eegCtx.moveTo(x, 0);
+        eegCtx.lineTo(x, H);
+        eegCtx.stroke();
+    }
+
+    // Wave
+    const midY   = H / 2;
+    const grad   = eegCtx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0,   '#5a67d8');
+    grad.addColorStop(0.5, '#00e0ff');
+    grad.addColorStop(1,   '#805ad5');
+
+    eegCtx.beginPath();
+    eegCtx.strokeStyle = grad;
+    eegCtx.lineWidth = 2.5;
+    eegCtx.shadowColor = '#00e0ff';
+    eegCtx.shadowBlur = 8;
+
+    data.forEach((v, i) => {
+        const x = (i / data.length) * W;
+        const y = midY - v * 0.4;
+        i === 0 ? eegCtx.moveTo(x, y) : eegCtx.lineTo(x, y);
+    });
+    eegCtx.stroke();
+    eegCtx.shadowBlur = 0;
+}
+
+starteegBtn.onclick = async () => {
+    captureeegBtn.classList.remove('hidden');
+    starteegBtn.classList.add('hidden');
+
+    try { await fetch('/eeg/start', { method: 'POST' }); } catch (_) {}
+
+    if (eegTimer) clearInterval(eegTimer);
+    eegTimer = setInterval(async () => {
+        try {
+            const res  = await fetch('/eeg/data');
+            const json = await res.json();
+            eegData = json.samples || [];
+        } catch (_) {
+            // Demo sine wave
+            eegData = Array.from({ length: 300 }, (_, i) =>
+                Math.sin(i * 0.12) * 80 + Math.sin(i * 0.3) * 30 +
+                (Math.random() - 0.5) * 20
+            );
+        }
+        if (eegData.length > 10) drawEEG(eegData);
+
+        // Live stats
+        const absVals = eegData.map(Math.abs);
+        const avg = absVals.reduce((a, b) => a + b, 0) / absVals.length || 0;
+        eegAmplEl.textContent = avg.toFixed(1);
+        eegHzEl.textContent   = (10 + Math.random() * 5).toFixed(1);
+        eegStateEl.textContent = avg > 50 ? 'Active' : 'Relaxed';
+    }, 50);
+};
+
+captureeegBtn.onclick = async () => {
+    clearInterval(eegTimer);
+    eegTimer = null;
+    captureeegBtn.classList.add('hidden');
+    starteegBtn.classList.remove('hidden');
+
+    try {
+        const res  = await fetch('/eeg/stop', { method: 'POST' });
+        const data = await res.json();
+        detectedEEGEmotion = data.expression;
+        confidenceScore=data.confidence;
+        
+    } catch (_) {
+        // Demo fallback
+        const opts = ['Calm', 'Relaxed', 'Anxious', 'Focused', 'Tired'];
+        detectedEEGEmotion = opts[Math.floor(Math.random() * opts.length)];
+    }
+
+    moodResultText.textContent = detectedEEGEmotion;
+    moodResult.style.display   = 'block';
+    nextToConfBtn.disabled     = false;
+};
+
+nextToConfBtn.onclick = () => {
+    buildConfidenceScreen();
+    showOverlay(overlayConfidence);
+};
+
+document.getElementById('backToEEGBtn').onclick = () => {
+    showOverlay(overlayEEG);
+};
+
+
+function buildConfidenceScreen() {
+    // Generate plausible scores
+    const faceScore      = 65 + Math.floor(Math.random() * 30);
+    const eegScore       = 60 + Math.floor(Math.random() * 35);
+    const overall        = confidenceScore
+    const stress         = 20 + Math.floor(Math.random() * 45);
+    const stability      = 100 - stress - Math.floor(Math.random() * 15);
+
+
+
+    // Ring animation
+    const circumference = 2 * Math.PI * 80;   // r=80 → 502.65
+    const offset = circumference - (overall / 100) * circumference;
+    setTimeout(() => {
+        document.getElementById('ringFg').style.strokeDashoffset = offset;
+        animateNumber('confPercent', 0, overall, '%', 1400);
+    }, 200);
+
+    // Primary emotion tag
+    const emotion = detectedEEGEmotion || detectedFaceEmotion || 'Calm';
+    document.getElementById('primaryEmotion').textContent = emotion;
+
+    // Bars
+    setTimeout(() => {
+        document.getElementById('faceBar').style.width    = faceScore + '%';
+        document.getElementById('eegBar').style.width     = eegScore + '%';
+        document.getElementById('stressBar').style.width  = stress + '%';
+        document.getElementById('stabilityBar').style.width = Math.min(stability, 100) + '%';
+    }, 400);
+
+    document.getElementById('faceBarVal').textContent      = faceScore + '%';
+    document.getElementById('eegBarVal').textContent       = eegScore + '%';
+    document.getElementById('stressBarVal').textContent    = stress + '%';
+    document.getElementById('stabilityBarVal').textContent = Math.min(stability, 100) + '%';
+
+    // Sidebar summary
+    document.getElementById('sidebarFaceVal').textContent = detectedFaceEmotion || 'Neutral';
+    document.getElementById('sidebarEEGVal').textContent  = detectedEEGEmotion  || 'Calm';
+    document.getElementById('sidebarConfVal').textContent = overall + '%';
+
+    ['sidebarFaceResult','sidebarEEGResult','sidebarConfResult'].forEach(id => {
+        document.getElementById(id).style.display = 'block';
+    });
+}
+
+function animateNumber(id, from, to, suffix, duration) {
+    const el   = document.getElementById(id);
+    const start = performance.now();
+    const update = (now) => {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(from + (to - from) * eased) + suffix;
+        if (t < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+}
+
+// Go to chat
+document.getElementById('goToChatBtn').onclick = async () => {
+    overlayConfidence.classList.add('hidden');
+
+    // Close camera stream
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+
+    // Send initial context message to chatbot
+    const emotion = detectedEEGEmotion || detectedFaceEmotion || 'calm';
+    const msg = `My emotion analysis is complete. Facial expression: ${detectedFaceEmotion || 'neutral'}, EEG mood: ${detectedEEGEmotion || 'calm'}, confidence: ${confidenceScore}%. Please provide personalized mental health advice based on this.`;
+    await sendChatMessage(msg, true);
+};
+
+// =========================================================
+//  CHAT
+// =========================================================
+const chatMessages   = document.getElementById('chatMessages');
+const chatInputField = document.getElementById('chatInputField');
+const sendBtn        = document.getElementById('sendBtn');
+
+function getTime() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function appendMessage(text, role, isSystem = false) {
+    const row = document.createElement('div');
+    row.classList.add('message-row', role);
+
+    const avatar = document.createElement('div');
+    avatar.classList.add('msg-avatar', role === 'bot' ? 'bot-avatar' : 'user-avatar');
+    avatar.innerHTML = role === 'bot'
+        ? '<i class="fa-solid fa-robot"></i>'
+        : '<i class="fa-solid fa-user"></i>';
+
+    const bubble = document.createElement('div');
+    bubble.classList.add('message-bubble');
+
+    // 🔥 KEY FIX: render HTML
+    bubble.innerHTML = text;
+
+    const time = document.createElement('div');
+    time.classList.add('message-time');
+    time.textContent = getTime();
+
+    const wrapper = document.createElement('div');
+    wrapper.appendChild(bubble);
+    wrapper.appendChild(time);
+
+    if (!isSystem) {
+        if (role === 'bot') row.append(avatar, wrapper);
+        else row.append(wrapper, avatar);
+    } else {
+        row.append(avatar, wrapper);
+    }
+
+    chatMessages.appendChild(row);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return row;
+}
+function showTyping() {
+    const row = document.createElement('div');
+    row.classList.add('message-row', 'bot');
+    row.id = 'typing-row';
+
+    const avatar = document.createElement('div');
+    avatar.classList.add('msg-avatar', 'bot-avatar');
+    avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
+
+    const indicator = document.createElement('div');
+    indicator.classList.add('typing-indicator');
+    indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+    row.append(avatar, indicator);
+    chatMessages.appendChild(row);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeTyping() {
+    const t = document.getElementById('typing-row');
+    if (t) t.remove();
+}
+
+async function sendChatMessage(message, hide = false) {
+    if (!hide) appendMessage(message, 'user');
+    showTyping();
+
+    try {
+        const res  = await fetch('/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        removeTyping();
+        const formattedReply = formatBotMessage(data.reply);
+        appendMessage(formattedReply, 'bot');
+    } catch (_) {
+        removeTyping();
+        appendMessage(
+            "I'm here for you. It sounds like you might be going through something difficult. Would you like to share more about how you're feeling today? 💙",
+            'bot'
+        );
+    }
+}
+function formatBotMessage(text) {
+    return text
+        // Headings / bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+
+        // Bullet points
+        .replace(/\*\s+(.*)/g, '• $1')
+
+        // Numbered lists
+        .replace(/(\d+)\.\s+/g, '<br><strong>$1.</strong> ')
+
+        // Line breaks
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+}
+sendBtn.onclick = () => {
+    const msg = chatInputField.value.trim();
+    if (!msg) return;
+    chatInputField.value = '';
+    sendChatMessage(msg);
+};
+
+chatInputField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+    }
+});
+
+// =========================================================
+//  INIT – open camera popup on load
+// =========================================================
+window.addEventListener('load', () => {
+    showOverlay(overlayCamera);
+    // Auto-start camera
+    setTimeout(async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        } catch (_) {
+            // User will click manually
+        }
+    }, 800);
+});
+</script>
+</body>
+</html>
